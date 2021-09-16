@@ -1,6 +1,3 @@
-This in an internal repo for the development of a Training App. 
-
-
 
 # Training App
 
