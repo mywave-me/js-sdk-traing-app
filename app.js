@@ -306,6 +306,18 @@ const data = {
         />
         `
         );
+
+    const dateField = () =>
+        FieldGroup(
+          field,
+          ` 
+        <input
+          class="form-control enterDate"
+          value="${field.getAnswer() || ""}"
+          placeholder="${field.getHint()}"
+        />
+        `
+        );
   
       const multipleChoices = () =>
         FieldGroup(
@@ -323,6 +335,32 @@ const data = {
                     value="${label}"
                     name="${field.getId()}"
                     type="radio"
+                  />
+                  ${label}
+                </label>
+              </p>
+            `
+              )
+              .join("")}
+          </div>
+        `
+        );
+        const multiSelectChoices = () =>
+        FieldGroup(
+          field,
+          `
+          <div class="form-check">
+            ${field
+              .getChoices()
+              .map(
+                (label) => `
+              <p>
+                <label>
+                  <input
+                    class="selectAnswer form-check-input"
+                    value="${label}"
+                    name="${field.getId()}"
+                    type="checkbox"
                   />
                   ${label}
                 </label>
@@ -357,6 +395,7 @@ const data = {
                     <div>${choice.description}</div>
                   </td>
                   <td>
+                    ${choice.mdContent} 
                   </td>
                 </tr>
                 `).join("") ?? ""
@@ -368,12 +407,16 @@ const data = {
       switch (field.getType()) {
         case "text":
           return textField();
+        case "date":
+      	  return dateField();
+        case "multiSelectChoices":
+            return multiSelectChoices();
         case "multipleChoices":
           return multipleChoices();
         case "multipleChoicesWithRichContent":
           return richContentChoices();
         default:
-          return "";
+          return `<p>Field type: ${field.getType()}</p>`;
       }
     };
   
@@ -395,6 +438,25 @@ const data = {
       field.validationResult = field.enter(target.value);
     };
     on("input", ".enterText", enterText);
+
+    const enterDate = (event) => {
+        const { target } = event;
+        const field = _findField(target);
+    
+        const [date, month, year] = target.value.split("/");
+        try {
+          const mwDate = new MWDate(
+            parseInt(year),
+            parseInt(month - 1),
+            parseInt(date)
+          );
+          field.validationResult = field.enter(mwDate);
+        } catch (err) {
+          field.validationResult = new ValidationResult(false, err.message);
+        }
+      };
+      on("input", ".enterDate", enterDate);
+    
   
     const chooseAnswer = (event) => {
       const { target } = event;
